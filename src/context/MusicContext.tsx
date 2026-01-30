@@ -1,6 +1,6 @@
-import React, { createContext, useContext, useState, ReactNode } from "react";
+import React, { createContext, useContext, useState, ReactNode, useCallback } from "react";
 import { Song, Playlist } from "@/types/music";
-import { mockPlaylists, mockSongs } from "@/data/mockData";
+import { mockPlaylists } from "@/data/mockData";
 
 interface MusicContextType {
   currentSong: Song | null;
@@ -8,15 +8,19 @@ interface MusicContextType {
   playlists: Playlist[];
   volume: number;
   progress: number;
+  duration: number;
+  showPlayer: boolean;
   playSong: (song: Song) => void;
   pauseSong: () => void;
   togglePlay: () => void;
   setVolume: (volume: number) => void;
   setProgress: (progress: number) => void;
+  setDuration: (duration: number) => void;
   createPlaylist: (name: string, description: string) => void;
   addSongToPlaylist: (playlistId: string, song: Song) => void;
   removeSongFromPlaylist: (playlistId: string, songId: string) => void;
   deletePlaylist: (playlistId: string) => void;
+  closePlayer: () => void;
 }
 
 const MusicContext = createContext<MusicContextType | undefined>(undefined);
@@ -27,32 +31,47 @@ export const MusicProvider = ({ children }: { children: ReactNode }) => {
   const [playlists, setPlaylists] = useState<Playlist[]>(mockPlaylists);
   const [volume, setVolumeState] = useState(70);
   const [progress, setProgressState] = useState(0);
+  const [duration, setDurationState] = useState(0);
+  const [showPlayer, setShowPlayer] = useState(false);
 
-  const playSong = (song: Song) => {
-    setCurrentSong(song);
-    setIsPlaying(true);
-    setProgressState(0);
-  };
-
-  const pauseSong = () => {
-    setIsPlaying(false);
-  };
-
-  const togglePlay = () => {
-    if (currentSong) {
-      setIsPlaying(!isPlaying);
+  const playSong = useCallback((song: Song) => {
+    if (song.youtubeId) {
+      setCurrentSong(song);
+      setIsPlaying(true);
+      setProgressState(0);
+      setShowPlayer(true);
     }
-  };
+  }, []);
 
-  const setVolume = (vol: number) => {
+  const pauseSong = useCallback(() => {
+    setIsPlaying(false);
+  }, []);
+
+  const togglePlay = useCallback(() => {
+    if (currentSong) {
+      setIsPlaying(prev => !prev);
+    }
+  }, [currentSong]);
+
+  const setVolume = useCallback((vol: number) => {
     setVolumeState(vol);
-  };
+  }, []);
 
-  const setProgress = (prog: number) => {
+  const setProgress = useCallback((prog: number) => {
     setProgressState(prog);
-  };
+  }, []);
 
-  const createPlaylist = (name: string, description: string) => {
+  const setDuration = useCallback((dur: number) => {
+    setDurationState(dur);
+  }, []);
+
+  const closePlayer = useCallback(() => {
+    setShowPlayer(false);
+    setIsPlaying(false);
+    setCurrentSong(null);
+  }, []);
+
+  const createPlaylist = useCallback((name: string, description: string) => {
     const newPlaylist: Playlist = {
       id: Date.now().toString(),
       name,
@@ -61,32 +80,32 @@ export const MusicProvider = ({ children }: { children: ReactNode }) => {
       songs: [],
       createdAt: new Date(),
     };
-    setPlaylists([...playlists, newPlaylist]);
-  };
+    setPlaylists(prev => [...prev, newPlaylist]);
+  }, []);
 
-  const addSongToPlaylist = (playlistId: string, song: Song) => {
-    setPlaylists(
-      playlists.map((playlist) =>
+  const addSongToPlaylist = useCallback((playlistId: string, song: Song) => {
+    setPlaylists(prev =>
+      prev.map((playlist) =>
         playlist.id === playlistId
           ? { ...playlist, songs: [...playlist.songs, song] }
           : playlist
       )
     );
-  };
+  }, []);
 
-  const removeSongFromPlaylist = (playlistId: string, songId: string) => {
-    setPlaylists(
-      playlists.map((playlist) =>
+  const removeSongFromPlaylist = useCallback((playlistId: string, songId: string) => {
+    setPlaylists(prev =>
+      prev.map((playlist) =>
         playlist.id === playlistId
           ? { ...playlist, songs: playlist.songs.filter((s) => s.id !== songId) }
           : playlist
       )
     );
-  };
+  }, []);
 
-  const deletePlaylist = (playlistId: string) => {
-    setPlaylists(playlists.filter((p) => p.id !== playlistId));
-  };
+  const deletePlaylist = useCallback((playlistId: string) => {
+    setPlaylists(prev => prev.filter((p) => p.id !== playlistId));
+  }, []);
 
   return (
     <MusicContext.Provider
@@ -96,15 +115,19 @@ export const MusicProvider = ({ children }: { children: ReactNode }) => {
         playlists,
         volume,
         progress,
+        duration,
+        showPlayer,
         playSong,
         pauseSong,
         togglePlay,
         setVolume,
         setProgress,
+        setDuration,
         createPlaylist,
         addSongToPlaylist,
         removeSongFromPlaylist,
         deletePlaylist,
+        closePlayer,
       }}
     >
       {children}

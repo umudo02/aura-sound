@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Home, Search, Library, Plus, Heart, Music2 } from "lucide-react";
+import { Home, Search, Library, Plus, Heart } from "lucide-react";
 import { useMusic } from "@/context/MusicContext";
 import { useState } from "react";
 import { CreatePlaylistDialog } from "./CreatePlaylistDialog";
@@ -9,6 +9,20 @@ interface SidebarProps {
   onViewChange: (view: string) => void;
   onPlaylistSelect: (playlistId: string) => void;
 }
+
+// NØTEMusic Logo Component
+const NoteLogo = ({ className }: { className?: string }) => (
+  <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+    <defs>
+      <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stopColor="hsl(260, 85%, 60%)" />
+        <stop offset="100%" stopColor="hsl(220, 90%, 55%)" />
+      </linearGradient>
+    </defs>
+    <circle cx="20" cy="20" r="18" fill="url(#logoGradient)" />
+    <text x="20" y="27" textAnchor="middle" fill="white" fontSize="20" fontWeight="bold" fontFamily="Plus Jakarta Sans, sans-serif">Ø</text>
+  </svg>
+);
 
 export const Sidebar = ({ activeView, onViewChange, onPlaylistSelect }: SidebarProps) => {
   const { playlists } = useMusic();
@@ -29,10 +43,10 @@ export const Sidebar = ({ activeView, onViewChange, onPlaylistSelect }: SidebarP
       >
         {/* Logo */}
         <div className="flex items-center gap-3 px-2">
-          <div className="w-10 h-10 rounded-xl gradient-primary flex items-center justify-center glow-primary">
-            <Music2 className="w-5 h-5 text-primary-foreground" />
+          <div className="w-10 h-10 glow-primary">
+            <NoteLogo className="w-10 h-10" />
           </div>
-          <span className="text-xl font-bold text-gradient">Melodify</span>
+          <span className="text-xl font-bold text-gradient">NØTEMusic</span>
         </div>
 
         {/* Main Navigation */}
