@@ -6,6 +6,7 @@ export interface Song {
   cover: string;
   duration: number;
   playCount: number;
+  youtubeId?: string; // YouTube video ID for playback
 }
 
 export interface Playlist {

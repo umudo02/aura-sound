@@ -9,7 +9,7 @@ import {
   Shuffle,
   Repeat,
   Heart,
-  ListMusic,
+  Youtube,
 } from "lucide-react";
 import { useMusic } from "@/context/MusicContext";
 import { Slider } from "@/components/ui/slider";
@@ -22,8 +22,15 @@ const formatTime = (seconds: number) => {
 };
 
 export const MusicPlayer = () => {
-  const { currentSong, isPlaying, togglePlay, volume, setVolume, progress, setProgress } =
-    useMusic();
+  const { 
+    currentSong, 
+    isPlaying, 
+    togglePlay, 
+    volume, 
+    setVolume, 
+    progress, 
+    duration,
+  } = useMusic();
   const [isLiked, setIsLiked] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [previousVolume, setPreviousVolume] = useState(volume);
@@ -50,7 +57,7 @@ export const MusicPlayer = () => {
     );
   }
 
-  const currentTime = (progress / 100) * currentSong.duration;
+  const progressPercent = duration > 0 ? (progress / duration) * 100 : 0;
 
   return (
     <motion.div
@@ -60,12 +67,19 @@ export const MusicPlayer = () => {
     >
       {/* Song Info */}
       <div className="flex items-center gap-3 w-72">
-        <motion.img
-          layoutId={`cover-${currentSong.id}`}
-          src={currentSong.cover}
-          alt={currentSong.title}
-          className="w-14 h-14 rounded-lg object-cover"
-        />
+        <motion.div className="relative">
+          <motion.img
+            layoutId={`cover-${currentSong.id}`}
+            src={currentSong.cover}
+            alt={currentSong.title}
+            className="w-14 h-14 rounded-lg object-cover"
+          />
+          {currentSong.youtubeId && (
+            <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-destructive flex items-center justify-center">
+              <Youtube className="w-3 h-3 text-destructive-foreground" />
+            </div>
+          )}
+        </motion.div>
         <div className="flex-1 min-w-0">
           <h4 className="font-semibold truncate">{currentSong.title}</h4>
           <p className="text-sm text-muted-foreground truncate">{currentSong.artist}</p>
@@ -129,30 +143,22 @@ export const MusicPlayer = () => {
 
         <div className="w-full flex items-center gap-2">
           <span className="text-xs text-muted-foreground w-10 text-right">
-            {formatTime(currentTime)}
+            {formatTime(progress)}
           </span>
           <Slider
-            value={[progress]}
-            onValueChange={(value) => setProgress(value[0])}
+            value={[progressPercent]}
             max={100}
             step={0.1}
             className="flex-1"
           />
           <span className="text-xs text-muted-foreground w-10">
-            {formatTime(currentSong.duration)}
+            {formatTime(duration)}
           </span>
         </div>
       </div>
 
-      {/* Volume & Extra Controls */}
+      {/* Volume Controls */}
       <div className="w-72 flex items-center justify-end gap-3">
-        <motion.button
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
-          className="text-muted-foreground hover:text-foreground transition-colors"
-        >
-          <ListMusic className="w-5 h-5" />
-        </motion.button>
         <div className="flex items-center gap-2">
           <motion.button
             whileHover={{ scale: 1.1 }}
